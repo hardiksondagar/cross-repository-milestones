@@ -1,0 +1,174 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Multi Repo Milestones</title>
+    <meta name="description" content="Multi Repo Milestones">
+    <meta name="author" content="Hardik Sondagar">
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+
+<body>
+    <div class="container">
+        <h2>Create Milestones</h2>
+        <input type="text" id="personal_access_token" name="personal_access_token"
+            placeholder="Enter Github Personal Access Token" style="width:100%;" autofocus="true" />
+        <input type="submit" id="load_repos_btn" value="Load Repositories" onclick="load_repos()"
+            style="width: 100%;" />
+        <div id="repo-list" style="visibility: hidden;">
+        </div>
+        <div id="milestone-list" style="visibility: hidden;">
+        </div>
+        <br>
+        <input type="submit" value="Create Milestones" id="create_milestone_btn" onclick="create_milestone()"
+            style="visibility: hidden;" />
+    </div>
+    <script type="module">
+        import { Octokit } from "https://cdn.skypack.dev/@octokit/core";
+        var octokit;
+        var repos = [];
+        async function login() {
+            let personal_access_token = document.getElementById("personal_access_token").value;
+            if (!personal_access_token) {
+                alert("Please enter access token");
+                return;
+            }
+            octokit = new Octokit({ auth: personal_access_token});
+        }
+        function render_table(title, identifier, data, cols) {
+            var body = document.getElementById(identifier);
+            body.innerHTML = '';
+            body.style.visibility = 'visible';
+            var h3 = document.createElement('h3');
+            h3.innerText = title;
+            body.appendChild(h3);
+            var tbl = document.createElement('table');
+            var thead = document.createElement('thead');
+            var tr = document.createElement('tr');
+            var headers = [""].concat(cols);
+            for (var j = 0; j < headers.length; j++) {
+                var th = document.createElement('td');
+                th.appendChild(document.createTextNode(headers[j]));
+                tr.appendChild(th)
+            }
+            thead.appendChild(tr);
+            tbl.appendChild(thead);
+            var tbdy = document.createElement('tbody');
+            for (var i = 0; i < data.length; i++) {
+                var tr = document.createElement('tr');
+                var item = data[i];
+                var td = document.createElement('td');
+                var checkbox_ele = document.createElement("INPUT");
+                checkbox_ele.setAttribute("type", "checkbox");
+                checkbox_ele.setAttribute("name", "selected_repos");
+                checkbox_ele.setAttribute("value", data[i]);
+                checkbox_ele.dataset.data = JSON.stringify(item);
+                td.appendChild(checkbox_ele)
+                tr.appendChild(td)
+                for (var j = 0; j < cols.length; j++) {
+                    var td = document.createElement('td');
+                    td.appendChild(document.createTextNode(item[cols[j]]))
+                    tr.appendChild(td);
+                }
+                tbdy.appendChild(tr);
+            }
+            tbl.appendChild(tbdy);
+            body.appendChild(tbl);
+        }
+        async function load_repos() {
+            var load_repos_btn = document.getElementById('load_repos_btn');
+            load_repos_btn.classList.add("glowing");
+
+            await login();
+            const {data} = await octokit.request('GET /user/repos');
+            repos = data;
+            var cols = ["name", "git_url"]
+            render_table('Repositories', 'repo-list', repos, cols);
+            add_milestones();
+            load_repos_btn.classList.remove("glowing");
+
+        }
+        function add_milestones() {
+            var milestones = [{
+                "title": "Sprint 1",
+                "description": "June 21 - June 28",
+                "due_on": "2021-06-28T23:59:59Z"
+            }, {
+                "title": "Sprint 2",
+                "description": "June 28 - July 5",
+                "due_on": "2021-07-05T23:59:59Z"
+            }, {
+                "title": "Sprint 3",
+                "description": "July 5 - July 12",
+                "due_on": "2021-07-12T23:59:59Z"
+            }, {
+                "title": "Sprint 4",
+                "description": "July 12 - July 19",
+                "due_on": "2021-07-19T23:59:59Z"
+            }, {
+                "title": "Sprint 5",
+                "description": "July 19 - July 26",
+                "due_on": "2021-07-26T23:59:59Z"
+            }];
+            var cols = ["title", "description", "due_on"];
+            render_table('Milestones', 'milestone-list', milestones, cols);
+            var button = document.getElementById('create_milestone_btn');
+            button.style.visibility = 'visible';
+        }
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        async function create_milestone() {
+            var selected_repos_elements = document.querySelectorAll('#repo-list input[type=checkbox]:checked');
+            var selected_repos = [];
+            for (let i=0; i<selected_repos_elements.length; i++) {
+                let selected_repo = JSON.parse(selected_repos_elements[i].dataset.data);
+                selected_repos.push(selected_repo);
+            }
+            var selected_milestone_elements = document.querySelectorAll('#milestone-list input[type=checkbox]:checked');
+            var selected_milestones = [];
+            for (let i=0; i<selected_milestone_elements.length; i++) {
+                let selected_milesone = JSON.parse(selected_milestone_elements[i].dataset.data);
+                selected_milestones.push(selected_milesone);
+            }
+            var button = document.getElementById('create_milestone_btn');
+            button.classList.add("glowing");
+
+            var success_count = 0, fail_count = 0;
+            for (let j=0; j<selected_repos.length; j++) {
+                for (let i=0; i<selected_milestones.length; i++) {
+                    try {
+                        await octokit.request(`POST /repos/{owner}/{repo}/milestones`, {
+                            owner: selected_repos[j].owner.login,
+                            repo: selected_repos[j].name,
+                            title: selected_milestones[i].title,
+                            description: selected_milestones[i].description,
+                            due_on: selected_milestones[i].due_on
+                        });
+                        success_count += 1;
+                        button.value = `${selected_milestones[i].title} created for ${selected_repos[j].full_name}`;
+                        await sleep(1000);
+                    } catch (error) {
+                        button.value = `${selected_milestones[i].title} failed for ${selected_repos[j].full_name}`;
+                        await sleep(1500);
+                        console.error(error);
+                        fail_count += 1;
+                    }
+                }
+                button.value = `Milestone created for ${selected_repos[j].full_name}`;
+                await sleep(2000);
+            }
+            button.value = `Success ${success_count}, Failed ${fail_count}`;
+            button.classList.remove("glowing");
+        }
+        window.login = login;
+        window.create_milestone = create_milestone;
+        window.load_repos = load_repos;
+        window.repos = repos;
+    </script>
+
+</body>
+
+</html>
