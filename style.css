@@ -50,6 +50,10 @@ input[type=text], input[type=password], input[type=date], button {
     box-sizing: border-box;
 }
 
+table input[type=text], table input[type=date], table button {
+    margin:0;
+}
+
 input[type=submit] {
     font-size: large;
     width: 100%;
