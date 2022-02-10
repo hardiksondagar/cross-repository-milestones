@@ -3,7 +3,7 @@
 Follow steps mentioned in the [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-token) to get access token.
 
 
-Code
+## code
 ```
 // script.js
 import { Octokit } from "https://cdn.skypack.dev/@octokit/core";
