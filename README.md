@@ -1,4 +1,4 @@
-![Sample](sample.png)
+# Create cross repository milestones in Github
 
 Follow steps mentioned in the [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-token) to get access token.
 
@@ -36,3 +36,5 @@ for (let r=0; r < repos.length; r++) {
     }
 }
 ```
+
+![Sample](sample.png)
