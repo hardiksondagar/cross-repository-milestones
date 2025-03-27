@@ -1,40 +1,50 @@
-# Create cross repository milestones in Github
+# Cross Repository Milestones for GitHub
 
-Follow steps mentioned in the [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-token) to get access token.
+A modern tool to create identical milestones across multiple GitHub repositories simultaneously.
 
+## Features
 
-## code
-```
-// script.js
-import { Octokit } from "https://cdn.skypack.dev/@octokit/core";
+- Clean, modern UI built with Tailwind CSS
+- Create consistent milestone titles, descriptions, and due dates across repositories
+- Select specific repositories from your GitHub account
+- Visual feedback on milestone creation status
 
-const token = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
-const octokit = new Octokit({ auth: token});
-const repos = await octokit.request('GET /user/repos');
-const milestones = [{
-    "title": "Sprint 1",
-    "description": "June 1 to June 7"
-    "due_on": "2021-06-01T00:00:00Z"
-}, {
-    "title": "Sprint 2",
-    "description": "June 7 to June 14"
-    "due_on": "2021-06-07T00:00:00Z"
-}];
+## Getting Started
 
-for (let r=0; r < repos.length; r++) {
-    let repo = repos[r];
-    for (let m=0; m < milestones.length; m++) {
-        let milestone = milestones[m];
-        let payload = {
-            owner: repo.owner.login,
-            repo: repo.name,
-            title: milestone.title,
-            description: milestone.description,
-            due_on: milestone.due_on
-        };
-        await octokit.request(`POST /repos/{owner}/{repo}/milestones`, payload);
-    }
-}
-```
+### GitHub Access Token
+
+1. Create a GitHub Personal Access Token following the [official documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+2. Ensure your token has the `repo` scope to access and modify repository data
+
+### Running the Application
+
+Simply open `index.html` in your browser - no build steps required.
+
+## Usage
+
+1. Enter your GitHub Personal Access Token
+2. Click "Load Repositories" to fetch all repositories you have access to
+3. Select repositories where you want to create milestones 
+4. Add milestone details (title, description, due date)
+5. Click "Create Milestones" to apply them to all selected repositories
+
+## Project Structure
+
+- `index.html` - Main HTML file with the user interface
+- `script.js` - JavaScript code handling all application logic and API interactions
+- Tailwind CSS is loaded via CDN
+
+## Technologies
+
+- HTML5
+- Tailwind CSS (via CDN)
+- Vanilla JavaScript
+- GitHub REST API via Octokit
+
+## Screenshot
 
 ![Sample](sample.png)
+
+## License
+
+MIT
